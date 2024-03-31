@@ -8,8 +8,13 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
-from users.serializers import UserSerializer
+from users.serializers import UserSerializer, CustomTokenObtainPairSerializer
 from users.models import User
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication, TokenAuthentication])
