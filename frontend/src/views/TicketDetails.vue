@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { FwbInput, FwbSelect, FwbButton, FwbBadge, FwbTextarea } from 'flowbite-vue';
 import { useTicketsStore } from '../stores/ticketsStore'
 import { useAuthStore } from '@/stores/authStore';
@@ -23,7 +23,10 @@ const sumbitReply = () => {
     }).then(res => {
         ticket.value = {
             ...ticket.value,
-            reply: res.data
+            replies: [
+                ...ticket.value.replies,
+                res.data
+            ]
         }
     }).catch(e => {
         console.error(e);
@@ -53,6 +56,10 @@ const resolveTicket = () => {
     }).catch(e => {
         console.error(e);
     })
+}
+
+const currentUserReplied = ()=>{
+    return ticket.value?.replies?.some(r => r.created_by == auth.user.user_id)
 }
 </script>
 
@@ -89,12 +96,12 @@ const resolveTicket = () => {
             </p>
 
             <hr class="my-4">
-            <span class="font-semibold">reply:</span>
-            <div v-if="ticket?.reply">
-                <p>{{ ticket?.reply?.text }}</p>
-                <span class="text-xs text-slate-600">{{ moment(ticket?.reply?.created_at).format('ddd DD MMM YYYY hh:mm A') }}</span>
+            <span class="font-semibold mb-6 block">Replies:</span>
+            <div v-if="ticket?.replies" v-for="reply in ticket?.replies">
+                <p>{{ reply?.text }}</p>
+                <span class="text-xs text-slate-600">{{ moment(reply?.created_at).format('ddd DD MMM YYYY hh:mm A') }}</span>
             </div>
-            <div v-if="!ticket?.reply && auth.user?.is_staff">
+            <div v-if="!currentUserReplied() && auth.user?.is_staff" class="mt-12">
                 <fwb-textarea v-model="newReply" label="new reply" />
                 <fwb-button @click="sumbitReply">send reply</fwb-button>
             </div>
