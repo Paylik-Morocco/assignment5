@@ -1,10 +1,11 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import Ticket from '../components/Ticket.vue'
 import { FwbInput, FwbSelect, FwbButton, FwbModal, FwbTextarea } from 'flowbite-vue';
 import { useTicketsStore } from '../stores/ticketsStore'
 import { useAuthStore } from '@/stores/authStore';
 import axios from 'axios';
+import moment from 'moment';
 const statuses = [
     { value: 'all', name: 'no status filter' },
     { value: 'open', name: 'Open tickets' },
@@ -19,7 +20,8 @@ const dateOptions = [
 ]
 
 const statusFilter = ref('all');
-const datesFilter = ref('week');
+const datesFilter = ref('all');
+const searchFilter = ref('');
 
 const isShowModal = ref(false);
 const openModal = () => {
@@ -32,10 +34,12 @@ const newTicket = ref({
     title: '',
     description: ''
 })
+
+
 const newTickerErrors = ref({});
 const auth = useAuthStore();
 const ticketsStore = useTicketsStore();
-ticketsStore.fetchTickets();
+// ticketsStore.fetchTickets();
 
 const submitTicket = async () => {
     const { status, data, response } = await axios.post('tickets/create/', {
@@ -49,7 +53,36 @@ const submitTicket = async () => {
         newTickerErrors.value = response.data;
     }
 }
+watch([searchFilter, datesFilter, statusFilter], (oldValue, newValue) => {
+    let status = statusFilter.value == 'all' ? null : statusFilter.value;
+    let search = searchFilter.value;
+    const now = moment();
+    let start_datetime = null;
+    let end_datetime = null;
+    
+    let params = {}
+    if(datesFilter.value == 'week'){
+        start_datetime = now.clone().startOf('week');
+        end_datetime = now.clone().endOf('week');
+    }
+    else if (datesFilter.value == 'month'){
+        start_datetime = now.clone().startOf('month');
+        end_datetime = now.clone().endOf('month');
+    }
+    else if (datesFilter.value == 'today'){
+        start_datetime = now.clone().startOf('day');
+        end_datetime = now.clone().endOf('day');
+    }
 
+    ticketsStore.fetchTickets({
+        status,
+        start_datetime,
+        end_datetime,
+        search
+    })
+}, {immediate: true})
+
+ticketsStore.fetchTicketsOverview();
 </script>
 
 <template>
@@ -58,27 +91,27 @@ const submitTicket = async () => {
             <div
                 class="shadow-sm bg-amber-200 px-6 py-2 lg:py-6 rounded-xl flex flex-row lg:flex-row items-center justify-between">
                 <span class="block font-semibold text-md">Total Tickets</span>
-                <span class="block font-semibold lg:font-bold text-xl ml-4">03</span>
+                <span class="block font-semibold lg:font-bold text-xl ml-4">{{ticketsStore.ticketsCount.all}}</span>
             </div>
             <div
                 class="shadow-sm bg-blue-400 px-6 py-2 lg:py-6 rounded-xl flex flex-row lg:flex-row items-center justify-between">
                 <span class="block font-semibold text-md">Open Tickets</span>
-                <span class="block font-semibold lg:font-bold text-xl ml-4">03</span>
+                <span class="block font-semibold lg:font-bold text-xl ml-4">{{ticketsStore.ticketsCount.open}}</span>
             </div>
             <div
                 class="shadow-sm bg-slate-300 px-6 py-2 lg:py-6 rounded-xl flex flex-row lg:flex-row items-center justify-between">
                 <span class="block font-semibold text-md">Closed Tickets</span>
-                <span class="block font-semibold lg:font-bold text-xl ml-4">03</span>
+                <span class="block font-semibold lg:font-bold text-xl ml-4">{{ticketsStore.ticketsCount.closed}}</span>
             </div>
             <div
                 class="shadow-sm bg-emerald-400 px-6 py-2 lg:py-6 rounded-xl flex flex-row lg:flex-row items-center justify-between">
                 <span class="block font-semibold text-md">Resolved Tickets</span>
-                <span class="block font-semibold lg:font-bold text-xl ml-4">03</span>
+                <span class="block font-semibold lg:font-bold text-xl ml-4">{{ticketsStore.ticketsCount.resolved}}</span>
             </div>
         </div>
         <div class="bg-white p-8 rounded-xl shadow-md">
             <div class="flex flex-col lg:flex-row justify-between">
-                <fwb-input label="Search" placeholder="enter your search query">
+                <fwb-input v-model="searchFilter"label="Search" placeholder="enter your search query">
                     <template #prefix>
                         <svg aria-hidden="true" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -89,9 +122,9 @@ const submitTicket = async () => {
                 </fwb-input>
                 <div class="flex flex-col md:flex-row justify-between items-stretch md:items-end mt-4 lg:mt-0">
                     <div class="flex flex-col md:flex-row">
-                        <fwb-select class="mr-0 md:mr-4" :model-value="statusFilter" :options="statuses"
+                        <fwb-select class="mr-0 md:mr-4" v-model="statusFilter" :options="statuses"
                             label="Status" />
-                        <fwb-select class="mt-4 md:mt-0" :model-value="datesFilter" :options="dateOptions"
+                        <fwb-select class="mt-4 md:mt-0" v-model="datesFilter" :options="dateOptions"
                             label="Date" />
                     </div>
                     <fwb-button @click="openModal" v-if="!auth.user?.is_staff" class="md:ml-4 py-2.5 text-sm mt-4">New
@@ -104,7 +137,7 @@ const submitTicket = async () => {
                     <Ticket :ticket="ticket" />
                 </li>
             </ul>
-            <span class="sm:text-2xl text-center block my-12" v-if="ticketsStore.tickets.length == 0">No tickets to show...</span>
+            <span class="sm:text-2xl text-center block my-12" v-if="ticketsStore.tickets?.length == 0">No tickets to show...</span>
         </div>
     </div>
     <fwb-modal v-if="isShowModal" @close="closeModal">

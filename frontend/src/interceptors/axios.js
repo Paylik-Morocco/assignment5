@@ -11,8 +11,12 @@ axios.interceptors.response.use(res=>res, async error =>{
 
         if (status === 200){
             axios.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
+            localStorage.setItem('access', data.access)
             return axios(error.config);
         }
+        axios.defaults.headers.common['Authorization'] = ``;
+        localStorage.setItem('access', '')
+
         router.push('/login')
     }
 
