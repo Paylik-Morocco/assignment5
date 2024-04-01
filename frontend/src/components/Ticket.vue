@@ -26,7 +26,7 @@ const {ticket} = defineProps({
                 <span>created at: {{ moment(ticket.created_at).format('ddd DD MMM YYYY hh:mm A') }}</span>
                 <span>last updated at: {{ moment(ticket.updated_at).format('ddd DD MMM YYYY hh:mm A') }}</span>
             </div>
-            <RouterLink :to="`/dashboard/ticket/${ticket.id}`"><span class="underline">View Ticket</span></RouterLink>
+            <RouterLink :to="`/ticket/${ticket.id}`"><span class="underline">View Ticket</span></RouterLink>
         </div>
     </div>    
 </template>
