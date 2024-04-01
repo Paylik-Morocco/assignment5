@@ -10,6 +10,9 @@ from tickets.models import Ticket, TicketReply
 from tickets.serializers import TicketSerializer, TicketReplySerializer, DetailedTicketSerializer
 
 from django.shortcuts import get_object_or_404
+import datetime
+
+from tickets.emails import send_ticket_created_emails, send_ticket_updated_email, send_ticket_reply_email
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication, JWTAuthentication])
@@ -20,25 +23,41 @@ def all_tickets(request):
         tickets = Ticket.objects.all()
     else:
         tickets = request.user.tickets
-    
+    if request.GET.get('status') != None:
+        tickets = tickets.filter(status=request.GET.get('status'))
+    if 'start_datetime' in request.GET:
+        tickets = tickets.filter(created_at__gte=datetime.datetime.fromisoformat(request.GET['start_datetime']))
+    if 'end_datetime' in request.GET:
+        tickets = tickets.filter(created_at__lte=datetime.datetime.fromisoformat(request.GET['end_datetime']))
+    if 'search' in request.GET:
+        tickets = tickets.filter(title__icontains=request.GET['search'])
+        tickets = tickets.filter(description__icontains=request.GET['search'])
+
     serializer = TicketSerializer(instance=tickets, many=True)
 
     return Response(serializer.data)
-    """ 
-    if user not is_staff
-    get own tickets paginated
 
-if user is_staff
-    get all tickets paginated
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication, JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def tickets_overview(request):
+    tickets = []
+    if request.user.is_staff:
+        tickets = Ticket.objects.all()
+    else:
+        tickets = request.user.tickets
+    all = tickets.count()
+    open = tickets.filter(status='open').count()
+    closed = tickets.filter(status='closed').count()
+    resolved = tickets.filter(status='resolved').count()
 
-    filter:
-    status
-    date
-    search by keyword
+    return Response({
+        'all': all,
+        'open': open,
+        'closed': closed,
+        'resolved': resolved
+    })
 
-    sort by date asc desc
-    
-    """
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication, JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -66,6 +85,7 @@ def create_ticket(request):
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     serializer.save()
+    send_ticket_created_emails(ticket_id=serializer.data['id'])
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -83,31 +103,22 @@ def update_ticket(request, id):
     ticket.save()
 
     serializer = TicketSerializer(instance=ticket)
+    send_ticket_updated_email(ticket_id=ticket.id)
     return Response(serializer.data, status=status.HTTP_200_OK)
-    """
-        if user not is_staff: prevent
-
-        else if user is_staff:
-        update ticket
-        send email to user
-    """
+ 
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication, JWTAuthentication])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def create_ticket_reply(request, id):
     ticket = get_object_or_404(Ticket, id=id)
 
-    if TicketReply.objects.filter(ticket=ticket).exists():
-        return Response({"detail": "This ticket already has a reply."}, status=status.HTTP_403_FORBIDDEN)
+    if TicketReply.objects.filter(ticket=ticket, created_by=request.user).exists():
+        return Response({"detail": "You have already replied to this ticket."}, status=status.HTTP_403_FORBIDDEN)
     serializer = TicketReplySerializer(data={**request.data, "created_by": request.user.id, "ticket":ticket.id})
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     serializer.save()
+    
+    send_ticket_reply_email(ticket_id=ticket.id)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
-    """
-    if user not is_staff: prevent
-    else if user is_staff:
-    create ticket reply
-    send email to user
-    """
