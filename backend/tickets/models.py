@@ -17,7 +17,7 @@ class Ticket(models.Model):
         return self.title
     
 class TicketReply(models.Model):
-    ticket = models.OneToOneField(Ticket, related_name="reply", on_delete=models.CASCADE)
+    ticket = models.ForeignKey(Ticket, related_name="replies", on_delete=models.CASCADE)
     text = models.TextField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)

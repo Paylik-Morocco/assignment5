@@ -12,7 +12,7 @@ class TicketReplySerializer(serializers.ModelSerializer):
 
 class DetailedTicketSerializer(serializers.ModelSerializer):
     created_by = UserSerializer(many=False)
-    reply = TicketReplySerializer(many=False)
+    replies = TicketReplySerializer(many=True)
     class Meta:
         model = Ticket
-        fields = ['id', 'title', 'description', 'status', 'created_at', 'updated_at', 'created_by', 'reply']
+        fields = ['id', 'title', 'description', 'status', 'created_at', 'updated_at', 'created_by', 'replies']
