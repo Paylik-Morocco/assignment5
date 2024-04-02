@@ -30,11 +30,17 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(res=>res, async (error)=>{
     console.log(error)
     if(error.response.status === 401){
+        if(error.response.data.code == 'user_not_found'){
+            api.defaults.headers.common['Authorization'] = ``;
+            localStorage.setItem('refresh', '')
+            return error;
+        }
         try{
             const access = refreshToken();
             api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
             return axios(error.config);
         }catch(e){
+            localStorage.setItem('refresh', '')
             api.defaults.headers.common['Authorization'] = ``;
             return error;
         }
