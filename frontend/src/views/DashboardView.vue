@@ -6,6 +6,7 @@ import { useTicketsStore } from '../stores/ticketsStore'
 import { useAuthStore } from '@/stores/authStore';
 import axios from 'axios';
 import moment from 'moment';
+import { api } from '@/utils/http';
 const statuses = [
     { value: 'all', name: 'no status filter' },
     { value: 'open', name: 'Open tickets' },
@@ -43,7 +44,7 @@ const ticketsStore = useTicketsStore();
 
 // create ticket
 const submitTicket = async () => {
-    const { status, data, response } = await axios.post('tickets/create/', {
+    const { status, data, response } = await api.post('tickets/create/', {
         title: newTicket.value.title,
         description: newTicket.value.description,
     })

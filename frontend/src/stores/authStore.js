@@ -1,17 +1,16 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import axios from 'axios';
+import { api } from '@/utils/http';
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(undefined);
   const login = ({ email, password }) => {
     return new Promise(async (resolve, reject) => {
-      const { status, data } = await axios.post('/token/', {
+      const { status, data } = await api.post('/token/', {
         email: email,
         password: password
       })
       if (status === 200) {
         localStorage.setItem('refresh', data.refresh);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
         localStorage.setItem('access', data.access)
         resolve(data);
       } else {
@@ -21,7 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
   const register = ({ username, email, password }) => {
     return new Promise(async (resolve, reject) => {
-      const { status, data, response } = await axios.post('/signup/', {
+      const { status, data, response } = await api.post('/signup/', {
         username: username,
         email: email,
         password: password
@@ -36,7 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const getProfile = () => {
     return new Promise(async (resolve, reject) => {
-      const { status, data, response } = await axios.get('/profile/')
+      const { status, data, response } = await api.get('/profile/')
       if (status === 200) {
         user.value = data;
         resolve(data);
@@ -46,21 +45,14 @@ export const useAuthStore = defineStore('auth', () => {
       }
     })
   }
-
+  getProfile();
   const logout = () => {
     localStorage.setItem('refresh', '');
-    axios.defaults.headers.common['Authorization'] = '';
+    localStorage.setItem('access', '');
+    api.defaults.headers.common['Authorization'] = '';
     user.value = null;
   }
 
-  async function initialize(){
-    try{
-      await getProfile();
-    }catch(e){
-      console.log('unauthenticated')
-    }
-  }
-
-  initialize();
+  
   return { user, login, logout, register, getProfile }
 })

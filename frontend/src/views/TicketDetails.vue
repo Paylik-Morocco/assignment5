@@ -7,12 +7,13 @@ import axios from 'axios';
 import { useRoute, useRouter } from 'vue-router';
 import moment from 'moment';
 import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue';
+import { api } from '@/utils/http';
 
 const ticket = ref(null);
 
 const route = useRoute();
 const router = useRouter();
-axios.get(`tickets/${route.params.id}/`).then(res => {
+api.get(`tickets/${route.params.id}/`).then(res => {
     ticket.value = res.data
 })
 
@@ -21,7 +22,7 @@ const auth = useAuthStore()
 const newReply = ref('');
 
 const sumbitReply = () => {
-    axios.post(`/tickets/${ticket.value.id}/reply/`, {
+    api.post(`/tickets/${ticket.value.id}/reply/`, {
         text: newReply.value
     }).then(res => {
         ticket.value = {
@@ -37,7 +38,7 @@ const sumbitReply = () => {
 }
 
 const closeTicket = () => {
-    axios.put(`/tickets/${ticket.value.id}/update/`, {
+    api.put(`/tickets/${ticket.value.id}/update/`, {
         status: 'closed'
     }).then(res => {
         ticket.value = {
@@ -49,7 +50,7 @@ const closeTicket = () => {
     })
 }
 const resolveTicket = () => {
-    axios.put(`/tickets/${ticket.value.id}/update/`, {
+    api.put(`/tickets/${ticket.value.id}/update/`, {
         status: 'resolved'
     }).then(res => {
         ticket.value = {

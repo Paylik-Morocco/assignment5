@@ -38,9 +38,22 @@ const router = createRouter({
 
 const unauthenticatedRoutes = ['login', 'register']
 const authenticatedRoutes = ['dashboard', 'ticket']
+router.isReady(async()=>{
+  try{
+    await auth.getProfile();
+  }catch(e){
+    console.log('unauth')
+  }
+})
 router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore();
-
+  if(localStorage.getItem('refresh') && localStorage.getItem('refresh') != ''){
+    try{
+      await auth.getProfile()
+    }catch(e){
+      console.log('unauth');
+    }
+  }
   if(unauthenticatedRoutes.includes(to.name) && auth.user){
     next({name: 'dashboard'})
   }
