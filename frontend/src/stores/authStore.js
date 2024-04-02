@@ -1,20 +1,8 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
-import router from '@/router';
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(null);
-  if(localStorage.getItem('refresh') && localStorage.getItem('refresh').trim() != ''){
-    const decoded_access = jwtDecode(localStorage.getItem('refresh'));
-
-    user.value = {
-      user_id: decoded_access.user_id,
-      username: decoded_access.username,
-      email: decoded_access.email,
-      is_staff: decoded_access.is_staff,
-    }
-  }
+  const user = ref(undefined);
   const login = ({ email, password }) => {
     return new Promise(async (resolve, reject) => {
       const { status, data } = await axios.post('/token/', {
@@ -24,13 +12,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (status === 200) {
         localStorage.setItem('refresh', data.refresh);
         axios.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
-        const decoded_access = jwtDecode(data.access);
-        user.value = {
-          user_id: decoded_access.user_id,
-          username: decoded_access.username,
-          email: decoded_access.email,
-          is_staff: decoded_access.is_staff,
-        }
+        localStorage.setItem('access', data.access)
         resolve(data);
       } else {
         reject(data);
@@ -52,10 +34,33 @@ export const useAuthStore = defineStore('auth', () => {
     })
   }
 
+  const getProfile = () => {
+    return new Promise(async (resolve, reject) => {
+      const { status, data, response } = await axios.get('/profile/')
+      if (status === 200) {
+        user.value = data;
+        resolve(data);
+      } else {
+        user.value = null;
+        reject(response.data);
+      }
+    })
+  }
+
   const logout = () => {
     localStorage.setItem('refresh', '');
     axios.defaults.headers.common['Authorization'] = '';
     user.value = null;
   }
-  return { user, login, logout, register }
+
+  async function initialize(){
+    try{
+      await getProfile();
+    }catch(e){
+      console.log('unauthenticated')
+    }
+  }
+
+  initialize();
+  return { user, login, logout, register, getProfile }
 })
