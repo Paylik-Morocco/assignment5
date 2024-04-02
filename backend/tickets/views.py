@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.authentication import TokenAuthentication
+from django.db.models import Q
 
 from tickets.models import Ticket, TicketReply
 
@@ -14,15 +15,21 @@ import datetime
 
 from tickets.emails import send_ticket_created_emails, send_ticket_updated_email, send_ticket_reply_email
 
+
+# get all tickets view
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication, JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def all_tickets(request):
     tickets = []
     if request.user.is_staff:
+        # if user is admin get all tickets
         tickets = Ticket.objects.all()
     else:
+        # if user is not an admin, get own tickets
         tickets = request.user.tickets
+
+    # Filtering tickets based on query params
     if request.GET.get('status') != None:
         tickets = tickets.filter(status=request.GET.get('status'))
     if 'start_datetime' in request.GET:
@@ -30,8 +37,7 @@ def all_tickets(request):
     if 'end_datetime' in request.GET:
         tickets = tickets.filter(created_at__lte=datetime.datetime.fromisoformat(request.GET['end_datetime']))
     if 'search' in request.GET:
-        tickets = tickets.filter(title__icontains=request.GET['search'])
-        tickets = tickets.filter(description__icontains=request.GET['search'])
+        tickets = tickets.filter(Q(title__icontains=request.GET['search']) | Q(description__icontains=request.GET['search']))
 
     serializer = TicketSerializer(instance=tickets, many=True)
 
@@ -100,6 +106,7 @@ def update_ticket(request, id):
         return Response({"detail": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
     
     ticket.status = request.data['status']
+    ticket.updated_at = datetime.datetime.now()
     ticket.save()
 
     serializer = TicketSerializer(instance=ticket)

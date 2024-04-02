@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import CheckConstraint, Q, F
 from users.models import User
+
 class Ticket(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
@@ -15,7 +16,9 @@ class Ticket(models.Model):
     created_by = models.ForeignKey(User, related_name="tickets", on_delete=models.DO_NOTHING)
     def __str__(self):
         return self.title
-    
+
+
+# TicketReply model. used to store ticket replies, their creation datetime, and who created the reply
 class TicketReply(models.Model):
     ticket = models.ForeignKey(Ticket, related_name="replies", on_delete=models.CASCADE)
     text = models.TextField(unique=True)

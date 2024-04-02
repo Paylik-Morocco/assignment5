@@ -8,10 +8,10 @@ from django.core.exceptions import ObjectDoesNotExist
 
 postmark = PostmarkClient(server_token=os.environ['POSTMARK_SERVER_TOKEN'])
 
-async def send_email(From, To, Subject, HtmlBody):
-    return postmark.emails.send(From=From, To=To, Subject=Subject, HtmlBody=HtmlBody)
+#? This file contains all email functions related to 'tickets'
 
 
+# send email to user and admins when ticket is created
 def send_ticket_created_emails(ticket_id):
     try:
         ticket = Ticket.objects.get(id=ticket_id)
@@ -39,6 +39,7 @@ def send_ticket_created_emails(ticket_id):
     postmark.emails.send_batch(*emails)
     return
 
+# send email to user when ticket is updated
 def send_ticket_updated_email(ticket_id):
     try:
         ticket = Ticket.objects.get(id=ticket_id)
@@ -59,6 +60,7 @@ def send_ticket_updated_email(ticket_id):
     postmark.emails.send_batch(*emails)
     return 
 
+# send email to user when admin replies to ticket
 def send_ticket_reply_email(ticket_id):
     try:
         ticket = Ticket.objects.get(id=ticket_id)

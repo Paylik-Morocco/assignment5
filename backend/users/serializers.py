@@ -10,6 +10,8 @@ class UserSerializer(serializers.ModelSerializer):
             'password': {'write_only': True}
         }
 
+
+# Custom tokens serializer. Adds extra user info to tokens (username, email, is_staff)
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Customizes JWT default Serializer to add more information about user"""
     @classmethod
