@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios';
 import moment from 'moment';
+import { api } from '@/utils/http';
 export const useTicketsStore = defineStore('tickets', () => {
   const tickets = ref([]);
   const ticketsCount = ref({
@@ -42,7 +43,7 @@ export const useTicketsStore = defineStore('tickets', () => {
   const fetchTicketsOverview = () => {
     return new Promise(async (resolve, reject) => {
       try {
-        const { data } = await axios.get('tickets/overview/');
+        const { data } = await api.get('tickets/overview/');
         ticketsCount.value = data;
         resolve(data);
       } catch (e) {
