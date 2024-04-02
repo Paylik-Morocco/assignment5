@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { api } from '@/utils/http';
+import { api, public_api } from '@/utils/http';
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(undefined);
   const login = ({ email, password }) => {
@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
   const register = ({ username, email, password }) => {
     return new Promise(async (resolve, reject) => {
-      const { status, data, response } = await api.post('/signup/', {
+      const { status, data, response } = await public_api.post('/signup/', {
         username: username,
         email: email,
         password: password
