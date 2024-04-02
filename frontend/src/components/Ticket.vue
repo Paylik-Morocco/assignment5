@@ -21,7 +21,7 @@ const {ticket} = defineProps({
             <p>{{ ticket.description }}</p>
         </div>
         <hr>
-        <div class="flex justify-between mt-6">
+        <div class="flex flex-col md:flex-row justify-between mt-6">
             <div class="flex flex-col text-sm text-gray-500">
                 <span>created at: {{ moment(ticket.created_at).format('ddd DD MMM YYYY hh:mm A') }}</span>
                 <span>last updated at: {{ moment(ticket.updated_at).format('ddd DD MMM YYYY hh:mm A') }}</span>
