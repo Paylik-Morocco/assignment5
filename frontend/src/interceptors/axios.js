@@ -1,6 +1,6 @@
 import axios from 'axios';
 import router from '@/router';
-axios.defaults.baseURL = 'http://localhost:8000/api/'
+axios.defaults.baseURL = import.meta.env.VITE_API_URL
 
 
 axios.interceptors.response.use(res=>res, async error =>{
