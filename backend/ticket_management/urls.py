@@ -23,10 +23,10 @@ from tickets.views import (all_tickets, get_ticket, create_ticket, update_ticket
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/profile/', get_profile),
     path('api/signup/', signup, name='token_obtain_pair'),
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/token/verify/', view=get_profile),
     path('api/tickets/', view=all_tickets),
     path('api/tickets/overview/', view=tickets_overview),
     path('api/tickets/<int:id>/', view=get_ticket),
