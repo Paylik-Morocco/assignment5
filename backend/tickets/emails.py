@@ -6,8 +6,7 @@ from users.models import User
 import time
 from django.core.exceptions import ObjectDoesNotExist
 
-# postmark = PostmarkClient(server_token=os.environ['POSTMARK_SERVER_TOKEN'])
-postmark = PostmarkClient(server_token='b79beee8-841a-40a8-89d0-26283eb34eec')
+postmark = PostmarkClient(server_token=os.environ['POSTMARK_SERVER_TOKEN'])
 
 async def send_email(From, To, Subject, HtmlBody):
     return postmark.emails.send(From=From, To=To, Subject=Subject, HtmlBody=HtmlBody)
@@ -22,8 +21,7 @@ def send_ticket_created_emails(ticket_id):
     admins = User.objects.filter(is_staff=True)
 
     emails = []
-    # APP_URL = os.environ['APP_URL']
-    APP_URL = "http://localhost:5173/"
+    APP_URL = os.environ['APP_URL']
     emails.append({
         'From': 'noreply@paylik.ma',
         'To': ticket_owner.email,
