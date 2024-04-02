@@ -61,6 +61,7 @@ const resolveTicket = () => {
     })
 }
 
+// returns if the current admin replies to this ticket.
 const currentUserReplied = ()=>{
     return ticket.value?.replies?.some(r => r.created_by == auth.user.user_id)
 }
