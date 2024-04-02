@@ -4,14 +4,14 @@ import LoginView from '@/views/LoginView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import TicketDetails from '@/views/TicketDetails.vue'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView
+      redirect: 'dashboard'
     },
     {
       path: '/login',
@@ -34,6 +34,21 @@ const router = createRouter({
       component: TicketDetails
     },
   ]
+})
+
+const unauthenticatedRoutes = ['login', 'register']
+const authenticatedRoutes = ['dashboard', 'ticket']
+router.beforeEach(async (to, from, next) => {
+  const auth = useAuthStore();
+
+  if(unauthenticatedRoutes.includes(to.name) && auth.user){
+    next({name: 'dashboard'})
+  }
+  else if (authenticatedRoutes.includes(to.name) && !auth.user){
+    next({name: 'login'})
+  }else{
+    next()
+  }
 })
 
 export default router

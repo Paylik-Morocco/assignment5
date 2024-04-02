@@ -11,13 +11,10 @@ const auth = useAuthStore();
 <template>
     <fwb-navbar class="py-4">
         <template #logo>
-            <span class="text-lg font-semibold">Task Management</span>
+            <RouterLink to="/dashboard"><span class="text-lg font-semibold">Task Management</span></RouterLink>
         </template>
         <template #default="{isShowMenu}">
             <fwb-navbar-collapse :is-show-menu="isShowMenu">
-                <fwb-navbar-link v-if="!auth.user">
-                    <RouterLink to="/" class="underline">Home</RouterLink>
-                </fwb-navbar-link>
                 <fwb-navbar-link v-if="!auth.user">
                     <RouterLink to="/login" class="underline">Login</RouterLink>
                 </fwb-navbar-link>
