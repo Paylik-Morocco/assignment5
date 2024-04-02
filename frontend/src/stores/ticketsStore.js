@@ -28,7 +28,7 @@ export const useTicketsStore = defineStore('tickets', () => {
           params.end_datetime = moment(end_datetime).toISOString();
         }
         const paramsobj = new URLSearchParams(params)
-        const { data } = await axios.get('tickets/?' + paramsobj.toString(), {
+        const { data } = await api.get('tickets/?' + paramsobj.toString(), {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('access')}`
           }
